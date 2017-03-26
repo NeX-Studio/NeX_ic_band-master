@@ -6,12 +6,17 @@
 
 package com.blueserial;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.UUID;
 
 import com.blueserial.R;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -19,7 +24,9 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
@@ -185,8 +192,33 @@ public class MainActivity extends Activity {
 								}
 							});
 						}
+                        /* from here is the code for input data to server */
+						HttpURLConnection connection = null;
+                        URL url = new URL("http://www.ci123.com/article.php/14099");
+                        connection = (HttpURLConnection) url.openConnection();
+                        // 设置请求方式
+                        connection.setRequestMethod("POST");
+                        // 设置编码格式
+                        connection.setRequestProperty("Charset", "UTF-8");
+                        // 传递自定义参数
+                        connection.setRequestProperty("MyProperty", "data posting");
+                        // 设置容许输出
+                        connection.setDoOutput(true);
 
-					}
+                        // 上传一张图片
+                        // FileInputStream file = new FileInputStream(Environment.getExternalStorageDirectory().getPath()
+                        //        + "/Pictures/Screenshots/Screenshot_2015-12-19-08-40-18.png");
+                        OutputStream os = connection.getOutputStream();
+                        //int count = 0;
+                        //while((count=file.read()) != -1){
+                        //    os.write(count);
+                        //}
+                        os.write(buffer);         //post buffer to the server
+                        os.flush();
+                        os.close();
+                    /* codes for server ends here */
+
+                    }
 					Thread.sleep(500);
 				}
 			} catch (IOException e) {
@@ -285,7 +317,8 @@ public class MainActivity extends Activity {
 			progressDialog = ProgressDialog.show(MainActivity.this, "Hold on", "Connecting");// http://stackoverflow.com/a/11130220/1287554
 		}
 
-		@Override
+		@TargetApi(Build.VERSION_CODES.GINGERBREAD_MR1)
+        @Override
 		protected Void doInBackground(Void... devices) {
 
 			try {
