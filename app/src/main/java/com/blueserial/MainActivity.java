@@ -37,6 +37,7 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import net.sf.json.JSONObject;
 
 public class MainActivity extends Activity {
 
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
 	private BluetoothDevice mDevice;
 
 	private ProgressDialog progressDialog;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -194,28 +196,48 @@ public class MainActivity extends Activity {
 						}
                         /* from here is the code for input data to server */
 						HttpURLConnection connection = null;
-                        URL url = new URL("http://www.ci123.com/article.php/14099");
+                        URL url = new URL("13.85.25.80");
                         connection = (HttpURLConnection) url.openConnection();
-                        // 设置请求方式
+                        connection.setDoOutput(true);
+						connection.setDoInput(true);
+						connection.setUseCaches(false);
+						connection.setInstanceFollowRedirects(true);
+
+						// 设置请求方式
                         connection.setRequestMethod("POST");
                         // 设置编码格式
                         connection.setRequestProperty("Charset", "UTF-8");
                         // 传递自定义参数
-                        connection.setRequestProperty("MyProperty", "data posting");
+                        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
                         // 设置容许输出
-                        connection.setDoOutput(true);
+						//POST请求
+						connection.connect();
+						DataOutputStream out = new DataOutputStream(
+								connection.getOutputStream());
+						JSONObject obj = new JSONObject();
+						obj.element("app_name", "asdf");
+						obj.element("app_ip", "10.21.243.234");
+						obj.element("app_port", 8080);
+						obj.element("app_type", "001");
+						obj.element("app_area", "asd");
 
-                        // 上传一张图片
-                        // FileInputStream file = new FileInputStream(Environment.getExternalStorageDirectory().getPath()
-                        //        + "/Pictures/Screenshots/Screenshot_2015-12-19-08-40-18.png");
-                        OutputStream os = connection.getOutputStream();
-                        //int count = 0;
-                        //while((count=file.read()) != -1){
-                        //    os.write(count);
-                        //}
-                        os.write(buffer);         //post buffer to the server
-                        os.flush();
-                        os.close();
+						out.writeBytes(obj.toString());
+						out.flush();
+						out.close();
+
+						//读取响应
+						BufferedReader reader = new BufferedReader(new InputStreamReader(
+								connection.getInputStream()));
+						String lines;
+						StringBuffer sb = new StringBuffer("");
+						while ((lines = reader.readLine()) != null) {
+							lines = new String(lines.getBytes(), "utf-8");
+							sb.append(lines);
+						}
+						System.out.println(sb);
+						reader.close();
+						// 断开连接
+						connection.disconnect();
                     /* codes for server ends here */
 
                     }
